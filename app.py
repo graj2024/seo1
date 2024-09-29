@@ -64,11 +64,6 @@ def home():
     if 'username' in session:
         # Logged-in user, render the full home page
         return render_template('home.html', is_guest=False)
-    elif session['guest']:      
-        print("inside home route ;guest set to 0")
-        session['credits'] = 0  # Ensure credits are 0 for guest users
-        # Guest user, render the home page with masking
-        return render_template('home.html', is_guest=True)    
     else:
         # If neither logged in nor guest, redirect to login
         return redirect(url_for('login'))
