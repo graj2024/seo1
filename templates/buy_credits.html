@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Buy Credits - Secure Payment Processing</title>
+  <script src="https://js.stripe.com/v3/"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    body {
+      font-family: 'Roboto', sans-serif;
+      background-color: #f4f4f9;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      flex-direction: column;
+    }
+    .container {
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+      max-width: 400px;
+      width: 100%;
+    }
+    .navbar {
+      width: 100%;
+      background-color: #007bff;
+      padding: 10px 0;
+      text-align: center;
+    }
+    .navbar a {
+      color: #fff;
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 18px;
+      margin: 0 15px;
+    }
+    h1 {
+      font-size: 24px;
+      font-weight: 500;
+      color: #333;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    form h2 {
+      font-size: 18px;
+      color: #555;
+      margin-bottom: 15px;
+    }
+    .form-group {
+      margin-bottom: 15px;
+    }
+    label {
+      font-size: 14px;
+      color: #666;
+      display: block;
+      margin-bottom: 5px;
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 10px;
+      border-radius: 5px;
+      border: 1px solid #ddd;
+      font-size: 14px;
+      color: #333;
+    }
+    input[type="text"]:focus {
+      outline: none;
+      border-color: #007bff;
+    }
+    #card-element {
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      background-color: #f9f9f9;
+      margin-bottom: 15px;
+    }
+    button {
+      background-color: #007bff;
+      color: #fff;
+      border: none;
+      padding: 12px;
+      font-size: 16px;
+      border-radius: 5px;
+      width: 100%;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    .form-group i {
+      margin-right: 5px;
+    }
+    .error-message {
+      color: red;
+      font-size: 12px;
+    }
+    .success-message {
+      color: green;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <div class="navbar">
+    <a href="/" class="home-link">Home</a>     
+  </div>
+
+  <div class="container">
+    <h1>Buy Credits</h1>
+
+    <form id="payment-form">
+      <h2><i class="fas fa-user"></i> Personal Information</h2>
+
+      <div class="form-group">
+        <label for="first_name">First Name:</label>
+        <input type="text" id="first_name" name="first_name" required>
+      </div>
+
+      <div class="form-group">
+        <label for="last_name">Last Name:</label>
+        <input type="text" id="last_name" name="last_name" required>
+      </div>
+
+      <div class="form-group">
+        <label for="address">Address:</label>
+        <input type="text" id="address" name="address" required>
+      </div>
+
+      <div class="form-group">
+        <label for="city">City:</label>
+        <input type="text" id="city" name="city" required>
+      </div>
+
+      <h2><i class="fas fa-credit-card"></i> Payment Information</h2>
+      <div id="card-element"></div>
+      <button type="submit"><i class="fas fa-lock"></i> Pay $5 for 25 Credits</button>
+    </form>
+
+    <div class="error-message" id="error-message"></div>
+    <div class="success-message" id="success-message"></div>
+  </div>
+
+  <script>
+    var stripe = Stripe('pk_test_EnhU9QCbzHBoLYInAlVnkA4N'); // Replace with your publishable key
+    var elements = stripe.elements();
+    var card = elements.create('card', {
+      hidePostalCode: true,
+      style: {
+        base: {
+          fontSize: '16px',
+          color: '#32325d',
+          '::placeholder': {
+            color: '#aab7c4'
+          }
+        },
+        invalid: {
+          color: '#fa755a',
+          iconColor: '#fa755a'
+        }
+      }
+    });
+    card.mount('#card-element');
+
+    var form = document.getElementById('payment-form');
+    form.addEventListener('submit', function(event) {
+      event.preventDefault();
+
+      stripe.createPaymentMethod({
+        type: 'card',
+        card: card,
+      }).then(function(result) {
+        if (result.error) {
+          document.getElementById('error-message').textContent = result.error.message;
+        } else {
+          const firstName = document.getElementById('first_name').value;
+          const lastName = document.getElementById('last_name').value;
+          const address = document.getElementById('address').value;
+          const city = document.getElementById('city').value;
+
+          fetch('/buy_credits', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              payment_method_id: result.paymentMethod.id,
+              first_name: firstName,
+              last_name: lastName,
+              address: address,
+              city: city,
+            })
+          }).then(function(response) {
+            if (response.ok) {
+              document.getElementById('success-message').textContent = 'Payment successful! Credits added to your account.';
+              document.getElementById('error-message').textContent = '';
+            } else {
+              document.getElementById('error-message').textContent = 'Payment failed. Please try again.';
+              document.getElementById('success-message').textContent = '';
+            }
+          });
+        }
+      });
+    });
+  </script>
+</body>
+</html>

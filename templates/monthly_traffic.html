@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Keyword Volume Checker</title>
+    <meta name="description" content="Check Google Ads keyword traffic with our easy-to-use Keyword Volume Checker.">
+    <meta name="keywords" content="Keyword Volume Checker, Google Ads, Keyword Traffic, SEO Tools">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+ body {
+      font-family: 'Roboto', sans-serif; 
+      margin: 0;
+      padding: 0;
+      background-color: #f4f4f4;
+    }
+
+    header {
+      background-color: #007BFF;
+      color: #fff;
+      padding: 15px 0;
+      text-align: center;
+      font-size: 24px;
+    }
+
+    footer {
+      background-color: #333;
+      color: #fff;
+      text-align: center;
+      padding: 10px;
+      position: fixed;
+      width: 100%;
+      bottom: 0;
+    }
+
+    .container {
+      width: 80%;
+      max-width: 1200px;
+      margin: 50px auto;
+      padding: 20px;
+      background-color: #fff;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      border-radius: 8px;
+    }
+
+    h1 {
+  text-align: center;
+  margin: 20px 0;
+  color: #fff; /* Set the color to white */
+  font-size: 28px;
+}
+
+    .form-group {
+        display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-direction: column; /* Arrange elements vertically */
+    }
+
+    input[type="text"] {
+      padding: 10px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      width: 45%;
+    }
+
+    button {
+      padding: 10px 20px;
+      background-color: #007BFF;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      width: 100%;
+      max-width: 200px;
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    #result {
+      text-align: center;
+      color: red;
+      margin-top: 10px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    th, td {
+      padding: 12px;
+      text-align: center;
+      border-bottom: 1px solid #ccc;
+    }
+
+    th {
+      background-color: #007BFF;
+      color: #fff;
+    }
+
+    tr:nth-child(even) {
+      background-color: #f9f9f9;
+    }
+
+    tr:hover {
+      background-color: #f1f1f1;
+    }
+
+    a {
+      color: #007BFF;
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 768px) {
+            .form-group {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            input[type="text"], select {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+        }
+
+        .header-container {
+  display: flex;
+  justify-content: center; /* Center the container horizontally */
+  align-items: center;
+}
+
+.home-link {
+  text-decoration: none;
+  color: #fff;
+  font-weight: bold;
+  margin-left: 20px; /* Add margin to create space between the link and the title */
+  float: right;
+  margin-top: 20px;
+  margin-right: 10px;
+}
+
+.home-link:hover {
+  text-decoration: underline;
+}
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header>
+        <nav>
+          <a href="/" class="home-link">Home</a>
+        </nav>
+        <h1>Keyword Volume Checker</h1>
+    </header>
+
+    <!-- Main Content -->
+    <div class="container">
+        <h1>Check Google Ads Keyword Traffic</h1>
+        
+        <div class="form-group">
+            <input type="text" id="keyword" placeholder="Enter a keyword..." aria-label="Enter keyword">
+            <button id="check-volume">Check Volume</button>
+        </div>
+
+        <div id="result" aria-live="polite"></div>
+
+        <div id="table-container"></div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        © 2024 Keyword Volume Checker. All Rights Reserved.
+    </footer>
+
+    <!-- JavaScript to handle API and display results -->
+    <script>
+        document.getElementById('check-volume').addEventListener('click', function() {
+            const keyword = document.getElementById('keyword').value;
+
+            if (!keyword) {
+                document.getElementById('result').textContent = "Please enter a keyword.";
+                return;
+            }
+
+            // Send request to the backend
+            fetch('http://127.0.0.1:5000/monthly_traffic', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ keyword: keyword })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    document.getElementById('result').textContent = data.error;
+                } else {
+                    displayTable(data.tasks[0].result, keyword);
+                }
+            })
+            .catch(error => {
+                document.getElementById('result').textContent = 'Error fetching data';
+                console.error(error);
+            });
+        });
+
+        // Function to display the JSON response in a table
+        function displayTable(results, searchedKeyword) {
+            const tableContainer = document.getElementById('table-container');
+
+            // Create table element
+            const table = document.createElement('table');
+
+            // Create table header
+            const header = `
+                <tr>
+                    <th>Keyword</th>
+                    <th>Clicks</th>
+                    <th>Impressions</th>
+                    <th>Cost</th>
+                    <th>CTR</th>
+                    <th>Avg CPC</th>
+                </tr>
+            `;
+            table.innerHTML = header;
+
+            // Populate table with results
+            results.forEach(result => {
+                const row = `
+                    <tr>
+                        <td>${searchedKeyword}</td>
+                        <td>${result.clicks.toFixed(2)}</td>
+                        <td>${result.impressions.toFixed(2)}</td>
+                        <td>${result.cost.toFixed(2)}</td>
+                        <td>${(result.ctr * 100).toFixed(2)}%</td>
+                        <td>${result.average_cpc.toFixed(2)}</td>
+                    </tr>
+                `;
+                table.innerHTML += row;
+            });
+
+            // Clear previous table if any and append the new table
+            tableContainer.innerHTML = "";
+            tableContainer.appendChild(table);
+        }
+    </script>
+</body>
+</html>

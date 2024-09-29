@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Keyword Suggestions</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+
+        .navbar {
+            background-color: #007BFF;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #fff;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .navbar a {
+            color: #FFF;
+            text-decoration: none;
+            margin-left: 25px;
+            font-weight: 500;
+            font-size: 16px;
+            transition: color 0.3s ease;
+        }
+
+        .navbar a:hover {
+            color: #FFD700;
+            text-decoration: underline;
+        }
+
+        .navbar p {
+            color: #FFF;
+            margin-left: 25px;
+            font-weight: 500;
+        }
+
+        header {
+            background-color: #007BFF;
+            color: #fff;
+            padding: 15px 0;
+            text-align: center;
+            font-size: 24px;
+        }
+
+        footer {
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            padding: 10px;
+            position: fixed;
+            width: 100%;
+            bottom: 0;
+        }
+
+        .container {
+            width: 80%;
+            max-width: 1200px;
+            margin: 80px auto;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+
+        h1 {
+            text-align: center;
+            margin: 20px 0;
+            color: #007BFF;
+            font-size: 28px;
+        }
+
+        .form-group {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        input[type="text"], select {
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            width: 40%;
+            margin-bottom: 10px;
+        }
+
+        input[type="text"]:first-of-type {
+            margin-right: 10px;
+        }
+
+        .button-container {
+            display: flex;
+            justify-content: center;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #007BFF;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            max-width: 200px;
+            text-align: center;
+            margin-top: 20px;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        #result {
+            text-align: center;
+            color: red;
+            margin-top: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: center;
+            border-bottom: 1px solid #ccc;
+        }
+
+        th {
+            background-color: #007BFF;
+            color: #fff;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+
+    </style>
+</head>
+<body>
+
+<!-- Navbar -->
+<div class="navbar">
+    <div>
+        <a href="{{ url_for('home') }}">Home</a>
+        <a href="{{ url_for('buy_credits') }}">Buy Credits</a>
+        <a>Credits: {{ session['credits'] }}</a>
+    </div>
+    <div>
+        {% if not is_guest %}
+            <a href="/logout">Logout</a>
+        {% else %}
+            <a href="/login">Login</a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Main Content -->
+<div class="container">
+    <h1>Keyword Suggestions</h1>
+
+    <form action="/get_keyword_suggestions" method="GET">
+        <div class="form-group">
+            <input type="text" name="keyword" placeholder="Enter your seed keyword" required>
+            <select name="country_code" required>
+                <option value="US">US</option>
+                <option value="CAN">CAN</option>
+                <option value="AU">AUS</option>
+                <option value="UK">UK</option>
+            </select>
+        </div>
+        <div class="button-container">
+            <button type="submit">Get Keyword Suggestions</button>
+        </div>
+    </form>
+
+    <!-- Display error if exists -->
+    {% if error %}
+    <div id="result">{{ error }}</div>
+    {% endif %}
+
+    <!-- Display table if results exist -->
+    {% if result %}
+    <table>
+        <thead>
+            <tr>
+                <th>Keyword</th>
+                <th>Search Volume</th>
+                <th>CPC</th>
+                <th>Competition Value</th>
+                <th>Score</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in result %}
+            <tr>
+                <td>{{ item.text }}</td>
+                <td>{{ item.vol }}</td>
+                <td>{{ item.cpc if session.get('username') else "Login to view" }}</td>
+                <td>{{ item.competition }}</td>
+                <td>{{ item.score if session.get('username') else "Login to view" }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+</div>
+
+<!-- Footer -->
+<footer>
+    © 2024 Keyword Suggestions Finder. All Rights Reserved.
+</footer>
+
+</body>
+</html>

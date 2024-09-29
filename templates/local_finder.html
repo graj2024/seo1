@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Local List Finder</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        header {
+            background-color: #007BFF;
+            color: #fff;
+            padding: 15px 0;
+            text-align: center;
+            font-size: 24px;
+        }
+        footer {
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            padding: 10px;
+            position: fixed;
+            width: 100%;
+            bottom: 0;
+        }
+        .container {
+  width: 80%;
+  max-width: 1200px;
+  margin: 50px auto;
+  padding: 20px;
+  background-color: #fff;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  color: #007BFF; /* Set color for all elements within the container */
+}
+h1 {
+  text-align: center;
+  margin: 20px 0;
+  color: #fff; /* Set the color to white */
+  font-size: 28px;
+}
+        .form-group {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        input[type="text"], select {
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            width: 45%;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #007BFF;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            max-width: 200px;
+            text-align: center;
+            margin-top: 20px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #result {
+            text-align: center;
+            color: red;
+            margin-top: 10px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        th, td {
+            padding: 12px;
+            text-align: center;
+            border-bottom: 1px solid #ccc;
+        }
+        th {
+            background-color: #007BFF;
+            color: #fff;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+        a {
+            color: #007BFF;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        @media (max-width: 768px) {
+            .form-group {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            input[type="text"], select {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+        }
+
+        .header-container {
+  display: flex;
+  justify-content: space-between; /* Center the container horizontally */
+  align-items: center;
+}
+
+.home-link {
+  text-decoration: none;
+  color: #fff;
+  font-weight: bold;
+  margin-left: 20px; /* Add margin to create space between the link and the title */
+  float: right;
+  margin-top: 20px;
+  margin-right: 10px;
+}
+
+.home-link:hover {
+  text-decoration: underline;
+}
+.container {
+  margin-top: 30px; /* Adjust margin-top if needed */
+}
+    </style>
+</head>
+<body>
+
+         <!-- Navbar -->
+         <header>
+            <nav>
+              <a href="/" class="home-link">Home</a>
+            </nav>
+            <h1>Local List Finder</h1>
+            </header>
+    
+
+    <!-- Main Content -->
+    <div class="container">
+        <h1>Google Local Finder</h1>
+        
+        <div class="form-group">
+            <input type="text" id="keyword" placeholder="Enter a keyword...">
+            <select id="region">
+                <option value="">Select a region</option>
+                <option value="1002312">New York</option>
+                <option value="21137">Los Angeles</option>
+                <option value="1023191">Chicago</option>
+                <option value="24263">Houston</option>
+                <option value="37856">San Francisco</option>
+                <!-- Add more cities with their location codes here -->
+            </select>
+            <button id="check-volume">Check Local List</button>
+        </div>
+
+        <div id="result"></div>
+        <div id="table-container"></div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        © 2024 Local List Finder. All Rights Reserved.
+    </footer>
+
+    <!-- JavaScript to handle API and display results -->
+    <script>
+    document.getElementById('check-volume').addEventListener('click', function() {
+        const keyword = document.getElementById('keyword').value;
+        const region = document.getElementById('region').value;  // Get selected region value
+
+        if (!keyword) {
+            document.getElementById('result').textContent = "Please enter a keyword.";
+            return;
+        }
+
+        if (!region) {
+            document.getElementById('result').textContent = "Please select a region.";
+            return;
+        }
+
+        // Send request to the backend
+        fetch('http://127.0.0.1:5000/local_finder', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ keyword: keyword, region: region })  // Include region in payload
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.tasks && data.tasks[0] && data.tasks[0].result && data.tasks[0].result[0].items) {
+                displayTable(data.tasks[0].result[0].items);  // Pass the items array
+            } else {
+                document.getElementById('result').textContent = "No items found for the given keyword.";
+            }
+        })
+        .catch(error => {
+            document.getElementById('result').textContent = 'Error fetching data';
+            console.error(error);
+        });
+    });
+
+    // Function to display the JSON response in a table
+    function displayTable(items) {
+        const tableContainer = document.getElementById('table-container');
+        // Create table element
+        const table = document.createElement('table');
+        // Create table header
+        const header = `
+            <tr>
+                <th>Rank</th>
+                <th>Domain</th>
+                <th>Phone</th>
+                <th>URL</th>
+            </tr>
+        `;
+        table.innerHTML = header;
+        // Populate table with results
+        items.forEach(item => {
+            const row = `
+                <tr>
+                    <td>${item.rank_absolute || 'N/A'}</td>
+                    <td>${item.domain || 'N/A'}</td>
+                    <td>${item.phone || 'N/A'}</td>
+                    <td><a href="${item.url || '#'}" target="_blank">${item.url || 'N/A'}</a></td>
+                </tr>
+            `;
+            table.innerHTML += row;
+        });
+        // Clear previous table if any and append the new table
+        tableContainer.innerHTML = "";
+        tableContainer.appendChild(table);
+    }
+    </script>
+</body>
+</html>
